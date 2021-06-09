@@ -62,7 +62,10 @@ class _OtpScreenState extends State<OtpScreen> {
           },
           builder: (context, state) {
             return state.maybeWhen(
-              loading: () => Center(child: CircularProgressIndicator()),
+              loading: () {
+                _countdownController.restart();
+                return Center(child: CircularProgressIndicator());
+              },
               orElse: () => _buildBody(),
             );
           },
@@ -73,6 +76,9 @@ class _OtpScreenState extends State<OtpScreen> {
 
   Widget _buildBody() {
     var size = MediaQuery.of(context).size;
+    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+      return _countdownController.restart();
+    });
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
