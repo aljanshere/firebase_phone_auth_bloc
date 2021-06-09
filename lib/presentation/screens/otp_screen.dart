@@ -26,8 +26,8 @@ class _OtpScreenState extends State<OtpScreen> {
 
   late bool sendCode;
 
-  final _registrationCubit = locator<PhoneAuthCubit>();
-  final TextEditingController _verificationCodeController = TextEditingController();
+  final _phoneAuthCubit = locator<PhoneAuthCubit>();
+  final TextEditingController _pinCodeController = TextEditingController();
 
   @override
   void initState() {
@@ -39,9 +39,15 @@ class _OtpScreenState extends State<OtpScreen> {
   }
 
   @override
+  void dispose() {
+    _pinCodeController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => _registrationCubit,
+      create: (context) => _phoneAuthCubit,
       child: Scaffold(
         body: BlocConsumer<PhoneAuthCubit, PhoneAuthState>(
           listener: (context, state) {
@@ -100,7 +106,7 @@ class _OtpScreenState extends State<OtpScreen> {
                 onPressed: sendCode == true
                     ? null
                     : () async {
-                        await _registrationCubit.resendVerificationCode(phoneNumber: widget.phoneNumber);
+                        await _phoneAuthCubit.resendVerificationCode(phoneNumber: widget.phoneNumber);
                         Future.delayed(Duration(seconds: 1), () {
                           setState(() => sendCode = !sendCode);
                           WidgetsBinding.instance?.addPostFrameCallback((_) => _countdownController.restart());
@@ -133,7 +139,7 @@ class _OtpScreenState extends State<OtpScreen> {
             ],
           ),
           TextButton(
-            onPressed: () async => await _registrationCubit.sendVerificationCode(verificationId: widget.verificationId),
+            onPressed: () async => await _phoneAuthCubit.sendVerificationCode(verificationId: widget.verificationId),
             style: TextButton.styleFrom(
               primary: Theme.of(context).primaryColor,
               backgroundColor: Colors.white,
@@ -151,15 +157,13 @@ class _OtpScreenState extends State<OtpScreen> {
     );
   }
 
-  Widget _buildPinCodeField() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.0),
-      child: PinCodeTextField(
-        controller: _verificationCodeController,
+  Widget _buildPinCodeField() => PinCodeTextField(
+        controller: _pinCodeController,
+        autoDisposeControllers: false,
         length: 6,
         onCompleted: (value) {
           print(value);
-          _registrationCubit.updateVerificationCode(value);
+          _phoneAuthCubit.updateVerificationCode(value);
         },
         appContext: context,
         onChanged: (value) {},
@@ -181,9 +185,7 @@ class _OtpScreenState extends State<OtpScreen> {
           disabledColor: Theme.of(context).primaryColor,
           selectedFillColor: Theme.of(context).primaryColor,
         ),
-      ),
-    );
-  }
+      );
 
   Widget _buildInfoText() {
     return RichText(

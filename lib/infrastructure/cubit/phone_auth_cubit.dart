@@ -75,11 +75,15 @@ class PhoneAuthCubit extends Cubit<PhoneAuthState> {
   }
 
   Future<void> sendVerificationCode({required String verificationId}) async {
+    // final currentState = PhoneAuthState.loading();
+
+    emit(PhoneAuthState.loading());
     try {
       await _PhoneAuthRepository.verifyWithSmsCode(smsCode: verificationCode, verificationId: verificationId);
       emit(PhoneAuthState.success());
     } catch (e) {
       emit(PhoneAuthState.message(message: '$e'));
+      // emit(currentState);
     }
   }
 }
